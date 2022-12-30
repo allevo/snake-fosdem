@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Hello wasm-pack!</title>
+
+    <style>
+      .game, .choose-game {
+        display: hidden;
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+        
+        align-items: center;
+      }
+      .choose-game {
+        flex-direction: row;
+      }
+      .game > #game-pre, .choose-game .example .board {
+        white-space: pre;
+        border: 1px solid black;
+        font-family: 'Courier New', Courier, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+
+    <div class="choose-game">
+    </div>
+
+    <div class="game">
+      <div id="game-pre"></div>
+      <div id="die-reason"></div>
+    </div>
+    <script src="./bootstrap.js"></script>
+  </body>
+</html>

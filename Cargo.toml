@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "snake",
+    "handly-made-snake",
+]
