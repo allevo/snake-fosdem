@@ -2,6 +2,8 @@ mod utils;
 
 use js_sys::{Int32Array, Object};
 use snake::{Direction, Game, Snapshot, SNAKE_1, SNAKE_2};
+use tracing::{instrument, info, Span};
+use tracing_subscriber::{fmt::{time::UtcTime, format::{FmtSpan, Pretty}}, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
 use wasm_bindgen::prelude::*;
 
 extern crate web_sys;
@@ -50,14 +52,15 @@ impl GameWrapper {
             .0
             .walls()
             .into_iter()
-            .map(|p| vec![p.x as i32, p.y as i32].into_iter())
-            .flatten()
+            .flat_map(|p| vec![p.x as i32, p.y as i32].into_iter())
             .collect();
 
         Int32Array::from(&walls[..])
     }
 
     pub fn tick(&mut self, direction: DirectionWrapper) -> SnapshotWrapper {
+        info!("direction = {:?}", direction);
+
         let direction = match direction {
             DirectionWrapper::Up => Direction::Up,
             DirectionWrapper::Down => Direction::Down,
@@ -65,7 +68,7 @@ impl GameWrapper {
             DirectionWrapper::Right => Direction::Right,
         };
 
-        self.0.tick(direction.into());
+        self.0.tick(direction);
 
         self.snapshot()
     }
@@ -86,8 +89,7 @@ impl SnapshotWrapper {
             .snake
             .iter()
             .cloned()
-            .map(|p| vec![p.x as i32, p.y as i32].into_iter())
-            .flatten()
+            .flat_map(|p| vec![p.x as i32, p.y as i32].into_iter())
             .collect();
         js_sys::Int32Array::from(&s[..])
     }
@@ -108,10 +110,30 @@ impl SnapshotWrapper {
 
         JsValue::NULL
     }
+
+    pub fn score(&self) -> usize {
+        self.0.score
+    }
+
+    pub fn period_duration_ms(&self) -> usize {
+        self.0.period_duration.as_millis() as usize
+    }
 }
 #[wasm_bindgen]
 pub fn set_panic_hook() {
     utils::set_panic_hook();
+    let fmt_layer = tracing_subscriber::fmt::layer()
+        .with_ansi(false)
+        .with_timer(UtcTime::rfc_3339())
+        .with_writer(tracing_web::MakeConsoleWriter)
+        .with_span_events(FmtSpan::ACTIVE)
+        .with_span_events(FmtSpan::CLOSE);
+    let perf_layer = tracing_web::performance_layer().with_details_from_fields(Pretty::default());
+
+    tracing_subscriber::registry()
+        .with(fmt_layer)
+        .with(perf_layer)
+        .init();
 }
 
 #[wasm_bindgen]

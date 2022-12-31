@@ -6,17 +6,19 @@
 
     <style>
       .game, .choose-game {
-        display: hidden;
         justify-content: center;
         display: flex;
         flex-direction: column;
         
         align-items: center;
       }
+      .game {
+        display: none;
+      }
       .choose-game {
         flex-direction: row;
       }
-      .game > #game-pre, .choose-game .example .board {
+      .game > #game-board, .choose-game .example .board {
         white-space: pre;
         border: 1px solid black;
         font-family: 'Courier New', Courier, monospace;
@@ -29,8 +31,9 @@
     <div class="choose-game">
     </div>
 
-    <div class="game">
-      <div id="game-pre"></div>
+    <div class="game" id="game">
+      <div id="game-board"></div>
+      <div id="score"></div>
       <div id="die-reason"></div>
     </div>
     <script src="./bootstrap.js"></script>

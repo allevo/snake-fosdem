@@ -1,4 +1,6 @@
-use std::str::FromStr;
+use std::{str::FromStr, time::Duration};
+
+use tracing::{info, instrument};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Direction {
@@ -10,23 +12,17 @@ pub enum Direction {
 
 impl Direction {
     fn is_compatible_with(&self, other: Direction) -> bool {
-        match (self, other) {
-            (Self::Up, Self::Down) => false,
-            (Self::Down, Self::Up) => false,
-            (Self::Left, Self::Right) => false,
-            (Self::Right, Self::Left) => false,
-            _ => true,
-        }
+        !matches!(
+            (self, other),
+            (Self::Up, Self::Down)
+                | (Self::Down, Self::Up)
+                | (Self::Left, Self::Right)
+                | (Self::Right, Self::Left)
+        )
     }
 }
 
-#[derive(PartialEq, Eq)]
-enum Cell {
-    Empty,
-    Wall,
-}
-
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct Point {
     pub x: usize,
     pub y: usize,
@@ -46,6 +42,7 @@ impl Snake {
         w: usize,
         h: usize,
     ) -> Point {
+        info!("move");
         self.move_body(should_add_new_body_piece);
         self.move_head(direction, w, h);
 
@@ -101,21 +98,37 @@ pub struct Snapshot {
     pub eat_itself: bool,
     pub food_position: Point,
     pub snake: Vec<Point>,
+    pub score: usize,
+    pub period_duration: Duration,
 }
 
 pub struct Game {
+    /// Dim of board
     width: usize,
     height: usize,
+    /// The snake
     snake: Snake,
-    board: Vec<Cell>,
+    /// List of walls
+    walls: Vec<Point>,
+    /// where's the food?
     food: Point,
+    /// The direction taken previously
     previous_direction: Direction,
+    /// Number of new piece of body we need to generate
     new_piece_to_generate: usize,
+
+    /// The score
+    score: usize,
+    /// The period duration
+    period_duration: Duration,
+
+    /// Track snapshot of last tick
     last_snapshot: Snapshot,
 }
 
 impl Game {
     pub fn tick(&mut self, mut direction: Direction) {
+        info!("tick");
         if !direction.is_compatible_with(self.previous_direction) {
             direction = self.previous_direction;
         }
@@ -133,9 +146,7 @@ impl Game {
             self.height,
         );
 
-        let index = coordinate_to_index(head, self.width);
-
-        let on_wall = self.board[index] == Cell::Wall;
+        let on_wall = self.walls.contains(&head);
         let on_food = head == self.food;
 
         let eat_itself = self.snake.on_body(head);
@@ -143,6 +154,8 @@ impl Game {
         if on_food {
             self.new_piece_to_generate += 1;
             self.food = self.generate_new_food_position();
+            self.score += 1;
+            self.period_duration = calculate_period_duration(self.score);
         }
 
         let mut snake = self.snake.body.clone();
@@ -154,6 +167,8 @@ impl Game {
             eat_itself,
             food_position: self.food,
             snake,
+            score: self.score,
+            period_duration: self.period_duration,
         };
     }
 
@@ -166,20 +181,16 @@ impl Game {
     }
 
     pub fn walls(&self) -> Vec<Point> {
-        self.board
-            .iter()
-            .enumerate()
-            .filter(|(_, c)| Cell::Wall == **c)
-            .map(|(i, _)| index_to_coordinate(i, self.width))
-            .collect()
+        self.walls.clone()
     }
 
     fn generate_new_food_position(&self) -> Point {
+        info!("generate_new_food_position");
         let x = fastrand::usize(..(self.width as usize));
         let y = fastrand::usize(..(self.height as usize));
         let p = Point { x, y };
 
-        if self.board[coordinate_to_index(p, self.width)] == Cell::Wall {
+        if self.walls.contains(&p) {
             return self.generate_new_food_position();
         }
 
@@ -203,33 +214,31 @@ impl FromStr for Game {
         let mut snake_head = None;
         let mut snake_body = vec![];
         let mut food = None;
-        let mut board = Vec::with_capacity(h as usize * w as usize);
+        let mut walls = Vec::with_capacity(h as usize * w as usize);
         for (i, c) in chars.enumerate() {
+            let point = index_to_coordinate(i, w);
             match c {
                 '#' => {
-                    board.push(Cell::Wall);
+                    walls.push(point);
                 }
-                ' ' => {
-                    board.push(Cell::Empty);
-                }
+                ' ' => {}
                 'h' => {
-                    snake_head = Some(index_to_coordinate(i, w));
-                    board.push(Cell::Empty);
+                    snake_head = Some(point);
                 }
                 'b' => {
-                    snake_body.push(index_to_coordinate(i, w));
-                    board.push(Cell::Empty);
+                    snake_body.push(point);
                 }
                 'f' => {
-                    food = Some(index_to_coordinate(i, w));
-                    board.push(Cell::Empty);
+                    food = Some(point);
                 }
                 _ => return Err(format!("Invalid char {} at {}", c, i)),
             }
         }
 
         let mut snake = snake_body.clone();
-        snake.insert(0, snake_head.unwrap());
+        snake.push(snake_head.unwrap());
+
+        let initial_score = 0;
 
         Ok(Game {
             width: w,
@@ -239,7 +248,7 @@ impl FromStr for Game {
                 body: snake_body,
                 index: 0,
             },
-            board,
+            walls,
             food: food.unwrap(),
             previous_direction: Direction::Up,
             new_piece_to_generate: 0,
@@ -249,7 +258,11 @@ impl FromStr for Game {
                 eat_itself: false,
                 food_position: food.unwrap(),
                 snake,
+                score: initial_score,
+                period_duration: calculate_period_duration(initial_score),
             },
+            score: initial_score,
+            period_duration: calculate_period_duration(initial_score),
         })
     }
 }
@@ -261,17 +274,24 @@ fn index_to_coordinate(index: usize, w: usize) -> Point {
     }
 }
 
-fn coordinate_to_index(p: Point, w: usize) -> usize {
-    p.y * w + p.x
+fn calculate_period_duration(score: usize) -> Duration {
+    match score {
+        0..=1 => Duration::from_secs(2),
+        2..=3 => Duration::from_secs(1),
+        4..=5 => Duration::from_millis(750),
+        6..=8 => Duration::from_millis(500),
+        9..=11 => Duration::from_millis(300),
+        _ => Duration::from_millis(200),
+    }
 }
 
-pub static SNAKE_2: &'static str = "          
+pub static SNAKE_2: &str = "          
           
     h     
     b     
       f   
           ";
-pub static SNAKE_1: &'static str = "\
+pub static SNAKE_1: &str = "\
 ##########
 #        #
 #        #
@@ -283,7 +303,7 @@ pub static SNAKE_1: &'static str = "\
 mod tests {
     use crate::{Direction, Game, Point, SNAKE_2};
 
-    static FIRST_LEVEL: &'static str = "\
+    static FIRST_LEVEL: &str = "\
 ##########
 #        #
 #   h    #
