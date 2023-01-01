@@ -1,8 +1,10 @@
-[workspace]
 
+[workspace]
+resolver = "2"
 members = [
     "snake",
     "handly-made-snake",
+    "bevy-snake"
 ]
 
 [profile.release]

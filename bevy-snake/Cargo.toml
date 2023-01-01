@@ -1,0 +1,25 @@
+[package]
+name = "bevy-snake"
+version = "0.1.0"
+edition = "2021"
+resolver = "2"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "bevy_snake"
+path = "src/main.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = { version = "0.9" }
+bevy_asset_loader =  { version = "0.14" }
+iyes_loopless = { version = "0.9" }
+
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+tracing-log = "0.1"
+
+snake = { path = "../snake" }

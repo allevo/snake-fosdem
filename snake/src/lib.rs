@@ -159,7 +159,7 @@ impl Game {
         }
 
         let mut snake = self.snake.body.clone();
-        snake.push(self.snake.head);
+        snake.insert(0, self.snake.head);
 
         self.last_snapshot = Snapshot {
             on_food,
@@ -236,7 +236,7 @@ impl FromStr for Game {
         }
 
         let mut snake = snake_body.clone();
-        snake.push(snake_head.unwrap());
+        snake.insert(0, snake_head.unwrap());
 
         let initial_score = 0;
 

@@ -98,11 +98,11 @@ function draw(game, el, wallsObject) {
     let snake = snapshot.snake()
     let food = snapshot.food()
 
-    let head_x = snake[snake.length - 2]
-    let head_y = snake[snake.length - 1]
+    let head_x = snake[0]
+    let head_y = snake[1]
 
     const body = []
-    for (let i = 0; i < snake.length - 2; i += 2) {
+    for (let i = 2; i < snake.length; i += 2) {
         let x = snake[i]
         let y = snake[i + 1]
         body.push(`${x}-${y}`)

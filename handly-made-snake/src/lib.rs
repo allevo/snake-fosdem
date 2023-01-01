@@ -2,8 +2,15 @@ mod utils;
 
 use js_sys::{Int32Array, Object};
 use snake::{Direction, Game, Snapshot, SNAKE_1, SNAKE_2};
-use tracing::{instrument, info, Span};
-use tracing_subscriber::{fmt::{time::UtcTime, format::{FmtSpan, Pretty}}, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
+use tracing::{info, instrument, Span};
+use tracing_subscriber::{
+    fmt::{
+        format::{FmtSpan, Pretty},
+        time::UtcTime,
+    },
+    prelude::__tracing_subscriber_SubscriberExt,
+    util::SubscriberInitExt,
+};
 use wasm_bindgen::prelude::*;
 
 extern crate web_sys;
