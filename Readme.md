@@ -1,17 +1,17 @@
 # Snake
 
 This project is a workspace with the following members:
-- snake: contains all the logic
-- handly-made-snake: wasm-targeted snake
-- bevy-snake: bevy implementation
+- `snake`: contains all the logic
+- `handly-made-snake`: wasm-targeted snake
+- `bevy-snake`: bevy implementation
 
 ## Workspace members
 
-### Snake
+### `snake`
 
 This project is purely implemented using Rust without any graphic stuff
 
-### Handly make snake
+### `handly made snake`
 
 This project is a graphic implementation of snake binding `snake` workspace member.
 
@@ -34,7 +34,7 @@ npm run build
 ```
 The `dist` folder contains all the static assets for a website
 
-### Bevy-snake
+### `bevy-snake`
 
 To run natively:
 ```
