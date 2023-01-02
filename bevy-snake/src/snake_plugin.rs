@@ -1,19 +1,19 @@
-
 use bevy::{
     input::keyboard::KeyboardInput,
     prelude::{
         Commands, Entity, EventReader, EventWriter, KeyCode, Plugin, Query, Res, ResMut, State,
-        SystemSet, Transform, With, World, TextBundle,
+        SystemSet, TextBundle, Transform, With, World,
     },
+    text::{Text, TextStyle},
     time::{Time, Timer, TimerMode},
-    window::{Window, Windows}, text::{TextStyle, Text},
+    window::{Window, Windows},
 };
 use snake::{Direction, Game};
 
 use crate::{
     components::*,
     draw_utils::DrawConfigurationResource,
-    events::{GameChosen, GameTick, GameOver},
+    events::{GameChosen, GameOver, GameTick},
     resources::*,
     AppState, LEVELS,
 };
@@ -22,8 +22,7 @@ pub struct SnakePlugin;
 
 impl Plugin for SnakePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app
-            .add_event::<GameTick>()
+        app.add_event::<GameTick>()
             .add_event::<GameOver>()
             .add_system(wait_for_game_chosen_event)
             // Enter in game
@@ -69,11 +68,7 @@ fn add_all_resources(world: &mut World) {
         _ => unreachable!("`add_all_resources` should be called only when the state is InGame"),
     };
 
-    let level = LEVELS
-        .iter()
-        .find(|(name, _)| name == game_name)
-        .unwrap()
-        .1;
+    let level = LEVELS.iter().find(|(name, _)| name == game_name).unwrap().1;
 
     let game: Game = level.parse().unwrap();
     let dim = game.dim();
@@ -184,6 +179,7 @@ fn tick(
     tick_event_writer.send(GameTick);
 }
 
+#[allow(clippy::too_many_arguments)]
 fn play(
     mut tick_event: EventReader<GameTick>,
     mut game_over_writer: EventWriter<GameOver>,
@@ -220,7 +216,6 @@ fn play(
     if game_timers.0.duration() != snapshot.period_duration {
         game_timers.0.set_duration(snapshot.period_duration);
     }
-
 }
 
 fn update_food(

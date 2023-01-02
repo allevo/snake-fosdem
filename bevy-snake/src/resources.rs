@@ -1,11 +1,12 @@
 use bevy::{
-    prelude::{AssetServer, FromWorld, Resource, Vec2, Handle, Color},
+    prelude::{AssetServer, Color, FromWorld, Handle, Resource},
     sprite::{Sprite, SpriteBundle},
-    time::Timer, text::Font,
+    text::Font,
+    time::Timer,
 };
 use snake::{Direction, Game, Point};
 
-use crate::draw_utils::DrawConfigurationResource;
+
 
 #[derive(Resource)]
 pub struct GameResource(pub Game);
@@ -76,7 +77,7 @@ impl FromWorld for Assets {
             pressed_button_color: Color::rgb(0.35, 0.75, 0.35),
             text_button_color: Color::WHITE,
             text_color: Color::WHITE,
-            overlay_background_color: Color::rgba(0.6, 0.6, 0.6, 0.6).into(),
+            overlay_background_color: Color::rgba(0.6, 0.6, 0.6, 0.6),
         }
     }
 }

@@ -1,9 +1,11 @@
-use bevy::{prelude::{Commands, Mut, Resource, Transform, Vec3, Vec2, NodeBundle, default, Color}, ui::{Style, JustifyContent, Val}};
+use bevy::{
+    prelude::{Commands, Mut, Resource, Transform, Vec2, Vec3},
+};
 use snake::Point;
 
 use crate::{
     components::*,
-    resources::{BundleType, Assets},
+    resources::{Assets, BundleType},
 };
 
 const BACKGROUND_Z: f32 = 0.;
@@ -18,17 +20,15 @@ pub struct DrawConfigurationResource {
 }
 
 impl DrawConfigurationResource {
-    pub fn spawn_background(
-        &self,
-        commands: &mut Commands,
-        bundles: &Assets,
-    ) {
+    pub fn spawn_background(&self, commands: &mut Commands, bundles: &Assets) {
         let mut background = bundles.background_tile.clone();
         background.transform.translation.z = BACKGROUND_Z;
-        background.sprite.custom_size = Some(Vec2::new(self.cell_size * self.dim.0 as f32, self.cell_size * self.dim.1 as f32));
+        background.sprite.custom_size = Some(Vec2::new(
+            self.cell_size * self.dim.0 as f32,
+            self.cell_size * self.dim.1 as f32,
+        ));
 
-        commands
-            .spawn(background);
+        commands.spawn(background);
     }
 
     pub fn spawn(

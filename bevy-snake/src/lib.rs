@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-use bevy::prelude::{Camera2dBundle, ClearColor, Color, Commands, Plugin, App};
+use bevy::prelude::{Camera2dBundle, ClearColor, Color, Commands, Plugin};
 use choose_game::ChooseGamePlugin;
 
 use game_over::GameOverPlugin;

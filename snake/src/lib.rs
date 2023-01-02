@@ -1,6 +1,6 @@
 use std::{str::FromStr, time::Duration};
 
-use tracing::{info, instrument};
+use tracing::{info};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Direction {

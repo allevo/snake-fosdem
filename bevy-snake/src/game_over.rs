@@ -1,13 +1,23 @@
-use bevy::{prelude::{EventReader, Plugin, SystemSet, ResMut, State, Res, Commands, AssetServer, NodeBundle, default, BuildChildren, TextBundle, Color, ButtonBundle, Query, Changed, Button, With, EventWriter}, ui::{Style, Val, JustifyContent, Display, AlignContent, AlignItems, Interaction, BackgroundColor}, text::TextStyle, app::AppExit};
+use bevy::{
+    app::AppExit,
+    prelude::{
+        default, BuildChildren, Button, ButtonBundle, Changed, Color, Commands,
+        EventReader, EventWriter, NodeBundle, Plugin, Query, Res, ResMut, State, SystemSet,
+        TextBundle, With,
+    },
+    text::TextStyle,
+    ui::{
+        AlignContent, AlignItems, BackgroundColor, Display, Interaction, JustifyContent, Style, Val,
+    },
+};
 
-use crate::{events::GameOver, AppState, resources::Assets, components::QuitComponent};
+use crate::{components::QuitComponent, events::GameOver, resources::Assets, AppState};
 
 pub struct GameOverPlugin;
 
 impl Plugin for GameOverPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app
-            .add_system(wait_for_game_over_event)
+        app.add_system(wait_for_game_over_event)
             .add_system_set(
                 SystemSet::on_enter(AppState::GameOver(""))
                     // init draw
@@ -17,7 +27,7 @@ impl Plugin for GameOverPlugin {
                 SystemSet::on_update(AppState::GameOver(""))
                     // init draw
                     .with_system(handle_quit),
-            );;
+            );
     }
 }
 
@@ -39,7 +49,9 @@ fn show_game_over_screen(
 
     let reason = match app_state.current() {
         AppState::GameOver(reason) => reason,
-        _ => unreachable!("`show_game_over_screen` should be called only if the state is in gameover"),
+        _ => unreachable!(
+            "`show_game_over_screen` should be called only if the state is in gameover"
+        ),
     };
 
     commands
@@ -90,20 +102,16 @@ fn show_game_over_screen(
                     ));
                 });
         });
-
 }
 
 #[allow(clippy::type_complexity)]
 fn handle_quit(
     assets: Res<Assets>,
     mut interaction_query: Query<
-        (
-            &Interaction,
-            &mut BackgroundColor,
-        ),
+        (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>, With<QuitComponent>),
     >,
-    mut exit: EventWriter<AppExit>
+    mut exit: EventWriter<AppExit>,
 ) {
     for (interaction, mut color) in &mut interaction_query {
         match *interaction {

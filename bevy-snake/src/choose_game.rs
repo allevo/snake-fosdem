@@ -11,7 +11,8 @@ use bevy::{
 use crate::{
     components::{ChooseGameButtonComponent, ChooseGameComponent},
     events::GameChosen,
-    AppState, LEVELS, resources::Assets,
+    resources::Assets,
+    AppState, LEVELS,
 };
 
 pub struct ChooseGamePlugin;
@@ -48,10 +49,7 @@ fn remove_choose_game(
     commands.entity(entity).despawn_recursive();
 }
 
-fn draw_choose_game(
-    mut commands: Commands,
-    assets: Res<Assets>,
-) {
+fn draw_choose_game(mut commands: Commands, assets: Res<Assets>) {
     let font = assets.font.clone();
 
     commands
