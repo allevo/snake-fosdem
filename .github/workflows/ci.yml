@@ -93,7 +93,7 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           ./target/
-        key: windows-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: Windows-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Copy resources
       run: |
         cp target/release/bevy_snake.exe .
