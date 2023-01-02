@@ -81,7 +81,7 @@ jobs:
   release_windows_release:
     needs: [build_windows_release]
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
