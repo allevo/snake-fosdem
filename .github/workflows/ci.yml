@@ -97,7 +97,7 @@ jobs:
     - name: Copy resources
       run: |
         cp target/release/bevy_snake.exe .
-        cp -r bevy-snake/assets assets
+        cp -r bevy-snake/assets/* assets/
     - name: Create zip
       uses: vimtor/action-zip@v1
       with:
