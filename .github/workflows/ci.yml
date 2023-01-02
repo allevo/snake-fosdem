@@ -95,7 +95,7 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
 
-  build_linux_release:
+  linux_release:
     needs: [build]
     name: Build linux release
     runs-on: ubuntu-latest
@@ -116,23 +116,6 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Build
       run: cargo build --release --locked
-
-  release_linux_release:
-    needs: [build_linux_release]
-    name: Release linux release
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          ./target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Copy resources
       run: |
         ls -lah target/release
