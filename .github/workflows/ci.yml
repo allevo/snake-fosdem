@@ -135,6 +135,7 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Copy resources
       run: |
+        ll target/release
         cp target/release/bevy_snake .
         mkdir assets
         cp -r bevy-snake/assets/ assets/
