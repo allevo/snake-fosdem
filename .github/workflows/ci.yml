@@ -81,7 +81,7 @@ jobs:
   release_windows_release:
     needs: [build_windows_release]
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -93,10 +93,11 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           ./target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: windows-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Copy resources
       run: |
         cp target/release/bevy_snake.exe .
+        mkdir assets
         cp -r bevy-snake/assets/ assets/
     - name: Create zip
       uses: vimtor/action-zip@v1
