@@ -102,6 +102,19 @@ pub struct Snapshot {
     pub period_duration: Duration,
 }
 
+impl Snapshot {
+    pub fn get_dead_reason(&self) -> Option<&'static str> {
+        if self.on_wall {
+            return Some("On Wall");
+        }
+        if self.eat_itself {
+            return Some("Eat itself");
+        }
+
+        None
+    }
+}
+
 pub struct Game {
     /// Dim of board
     width: usize,

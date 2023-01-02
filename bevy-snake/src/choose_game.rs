@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        default, AssetServer, BuildChildren, Button, ButtonBundle, Changed, Color, Commands,
-        DespawnRecursiveExt, Entity, NodeBundle, Plugin, Query, Res, ResMut, State, SystemSet,
+        default, BuildChildren, Button, ButtonBundle, Changed, Color, Commands,
+        DespawnRecursiveExt, Entity, EventWriter, NodeBundle, Plugin, Query, Res, SystemSet,
         TextBundle, With,
     },
     text::TextStyle,
@@ -10,15 +10,15 @@ use bevy::{
 
 use crate::{
     components::{ChooseGameButtonComponent, ChooseGameComponent},
-    resources::GameNameChosen,
-    AppState, LEVELS,
+    events::GameChosen,
+    AppState, LEVELS, resources::Assets,
 };
 
 pub struct ChooseGamePlugin;
 
 impl Plugin for ChooseGamePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app
+        app.add_event::<GameChosen>()
             // Enter choose game
             .add_system_set(
                 SystemSet::on_enter(AppState::ChooseGame)
@@ -48,8 +48,11 @@ fn remove_choose_game(
     commands.entity(entity).despawn_recursive();
 }
 
-fn draw_choose_game(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let font = asset_server.load("RobotoMedium-Owv4.ttf");
+fn draw_choose_game(
+    mut commands: Commands,
+    assets: Res<Assets>,
+) {
+    let font = assets.font.clone();
 
     commands
         .spawn(NodeBundle {
@@ -89,7 +92,7 @@ fn draw_choose_game(mut commands: Commands, asset_server: Res<AssetServer>) {
                                     align_items: AlignItems::Center,
                                     ..default()
                                 },
-                                background_color: NORMAL_BUTTON.into(),
+                                background_color: assets.normal_button_color.into(),
                                 ..default()
                             })
                             .insert(ChooseGameButtonComponent(name))
@@ -99,7 +102,7 @@ fn draw_choose_game(mut commands: Commands, asset_server: Res<AssetServer>) {
                                     TextStyle {
                                         font: font.clone(),
                                         font_size: 30.0,
-                                        color: Color::WHITE,
+                                        color: assets.text_button_color,
                                     },
                                 ));
                             });
@@ -108,14 +111,10 @@ fn draw_choose_game(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
-const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
-
 #[allow(clippy::type_complexity)]
 fn handle_choose_game(
-    mut game_chosen: ResMut<GameNameChosen>,
-    mut app_state: ResMut<State<AppState>>,
+    mut game_chosen_writer: EventWriter<GameChosen>,
+    assets: Res<Assets>,
     mut interaction_query: Query<
         (
             &Interaction,
@@ -128,16 +127,16 @@ fn handle_choose_game(
     for (interaction, mut color, choose_game_component) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                *color = PRESSED_BUTTON.into();
+                *color = assets.pressed_button_color.into();
 
-                game_chosen.0 = Some(choose_game_component.0);
-                app_state.set(AppState::InGame).unwrap();
+                let game_name = choose_game_component.0;
+                game_chosen_writer.send(GameChosen(game_name));
             }
             Interaction::Hovered => {
-                *color = HOVERED_BUTTON.into();
+                *color = assets.hovered_button_color.into();
             }
             Interaction::None => {
-                *color = NORMAL_BUTTON.into();
+                *color = assets.normal_button_color.into();
             }
         }
     }

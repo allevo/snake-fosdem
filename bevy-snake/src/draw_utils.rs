@@ -1,11 +1,15 @@
-use bevy::prelude::{Resource, Commands, Transform, Mut, Vec3};
+use bevy::{prelude::{Commands, Mut, Resource, Transform, Vec3, Vec2, NodeBundle, default, Color}, ui::{Style, JustifyContent, Val}};
 use snake::Point;
 
-use crate::{resources::{PbrBundles, BundleType}, components::*};
+use crate::{
+    components::*,
+    resources::{BundleType, Assets},
+};
 
-const WALL_Z: f32 = 0.;
-const SNAKE_Z: f32 = 1.;
-const FOOD_Z: f32 = 1.;
+const BACKGROUND_Z: f32 = 0.;
+const WALL_Z: f32 = 1.;
+const SNAKE_Z: f32 = 2.;
+const FOOD_Z: f32 = 2.;
 
 #[derive(Resource)]
 pub struct DrawConfigurationResource {
@@ -14,10 +18,23 @@ pub struct DrawConfigurationResource {
 }
 
 impl DrawConfigurationResource {
+    pub fn spawn_background(
+        &self,
+        commands: &mut Commands,
+        bundles: &Assets,
+    ) {
+        let mut background = bundles.background_tile.clone();
+        background.transform.translation.z = BACKGROUND_Z;
+        background.sprite.custom_size = Some(Vec2::new(self.cell_size * self.dim.0 as f32, self.cell_size * self.dim.1 as f32));
+
+        commands
+            .spawn(background);
+    }
+
     pub fn spawn(
         &self,
         commands: &mut Commands,
-        bundles: &PbrBundles,
+        bundles: &Assets,
         bundle_type: BundleType,
         position: &Point,
     ) {
@@ -28,6 +45,7 @@ impl DrawConfigurationResource {
             BundleType::Food => bundles.food.clone(),
         };
         bundle.transform.translation = self.get_translation(position, Self::get_z(bundle_type));
+        bundle.sprite.custom_size = Some(Vec2::new(self.cell_size, self.cell_size));
 
         let mut entity_commands = commands.spawn(bundle);
 

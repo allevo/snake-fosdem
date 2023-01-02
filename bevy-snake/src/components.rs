@@ -4,6 +4,9 @@ use bevy::prelude::Component;
 pub struct ChooseGameComponent;
 
 #[derive(Component)]
+pub struct QuitComponent;
+
+#[derive(Component)]
 pub struct ChooseGameButtonComponent(pub &'static str);
 
 #[derive(Component)]
@@ -17,3 +20,6 @@ pub struct SnakeHeadComponent;
 
 #[derive(Component)]
 pub struct FoodComponent;
+
+#[derive(Component)]
+pub struct ScoreComponent;

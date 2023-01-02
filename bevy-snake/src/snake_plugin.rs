@@ -1,32 +1,41 @@
+
 use bevy::{
     input::keyboard::KeyboardInput,
     prelude::{
-        Commands, Entity, EventReader, EventWriter, KeyCode, Plugin, Query, Res, ResMut, SystemSet,
-        Transform, With, World,
+        Commands, Entity, EventReader, EventWriter, KeyCode, Plugin, Query, Res, ResMut, State,
+        SystemSet, Transform, With, World, TextBundle,
     },
     time::{Time, Timer, TimerMode},
-    window::{Window, Windows},
+    window::{Window, Windows}, text::{TextStyle, Text},
 };
 use snake::{Direction, Game};
 
-use crate::{components::*, events::GameTick, resources::*, AppState, LEVELS, draw_utils::DrawConfigurationResource};
+use crate::{
+    components::*,
+    draw_utils::DrawConfigurationResource,
+    events::{GameChosen, GameTick, GameOver},
+    resources::*,
+    AppState, LEVELS,
+};
 
 pub struct SnakePlugin;
 
 impl Plugin for SnakePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_event::<GameTick>()
-            // Camera
+        app
+            .add_event::<GameTick>()
+            .add_event::<GameOver>()
+            .add_system(wait_for_game_chosen_event)
             // Enter in game
             .add_system_set(
-                SystemSet::on_enter(AppState::InGame)
+                SystemSet::on_enter(AppState::InGame(""))
                     .with_system(add_all_resources)
                     // init draw
                     .with_system(init_draw),
             )
             // Run game
             .add_system_set(
-                SystemSet::on_update(AppState::InGame)
+                SystemSet::on_update(AppState::InGame(""))
                     // draw walls
                     .with_system(draw_walls)
                     // Run tick
@@ -37,18 +46,32 @@ impl Plugin for SnakePlugin {
                     .with_system(update_snake_body)
                     .with_system(update_snake_head)
                     .with_system(update_food)
+                    .with_system(update_score)
                     .with_system(handle_keyboard_input),
             );
     }
 }
 
+fn wait_for_game_chosen_event(
+    mut game_chosen_reader: EventReader<GameChosen>,
+    mut app_state: ResMut<State<AppState>>,
+) {
+    if let Some(name) = game_chosen_reader.iter().last().map(|e| e.0) {
+        app_state.set(AppState::InGame(name)).unwrap();
+    };
+}
+
 fn add_all_resources(world: &mut World) {
-    let game_chosen: &GameNameChosen = world.resource();
-    let game_name_chosen = game_chosen.0.unwrap();
+    let state: &State<AppState> = world.resource();
+    let state = state.current();
+    let game_name = match state {
+        AppState::InGame(name) => name,
+        _ => unreachable!("`add_all_resources` should be called only when the state is InGame"),
+    };
 
     let level = LEVELS
         .iter()
-        .find(|(name, _)| name == &game_name_chosen)
+        .find(|(name, _)| name == game_name)
         .unwrap()
         .1;
 
@@ -63,9 +86,6 @@ fn add_all_resources(world: &mut World) {
 
     // Keep track cell size
     world.insert_resource(DrawConfigurationResource { cell_size, dim });
-    world
-        // Images used for drawing stuff
-        .init_resource::<PbrBundles>();
     world
         // Main resource: pointer to the game
         .insert_resource(GameResource(game));
@@ -88,32 +108,51 @@ fn init_draw(
     mut commands: Commands,
     snake: Res<SnakeResource>,
     food_position: Res<FoodPositionResource>,
-    bundles: Res<PbrBundles>,
+    assets: Res<Assets>,
     drawing_configuration: Res<DrawConfigurationResource>,
+    score: Res<ScoreResource>,
 ) {
     let mut snake_iter = snake.0.iter();
 
     let head = snake_iter.next().unwrap();
 
-    drawing_configuration.spawn(&mut commands, &bundles, BundleType::SnakeHead, head);
+    // Background
+    drawing_configuration.spawn_background(&mut commands, &assets);
 
+    // Head
+    drawing_configuration.spawn(&mut commands, &assets, BundleType::SnakeHead, head);
+
+    // Body
     for new_snake_point in snake_iter {
         drawing_configuration.spawn(
             &mut commands,
-            &bundles,
+            &assets,
             BundleType::SnakeBody,
             new_snake_point,
         );
     }
 
-    drawing_configuration.spawn(&mut commands, &bundles, BundleType::Food, &food_position.0);
+    // Food
+    drawing_configuration.spawn(&mut commands, &assets, BundleType::Food, &food_position.0);
+
+    // Score
+    commands
+        .spawn(TextBundle::from_section(
+            format!("score: {}", score.0),
+            TextStyle {
+                font: assets.font.clone(),
+                font_size: 30.0,
+                color: assets.text_button_color,
+            },
+        ))
+        .insert(ScoreComponent);
 }
 
 fn draw_walls(
     mut commands: Commands,
     walls: Res<WallsResource>,
     walls_query: Query<(Entity, &WallComponent)>,
-    bundles: Res<PbrBundles>,
+    assets: Res<Assets>,
     drawing_configuration: Res<DrawConfigurationResource>,
 ) {
     if !walls.is_changed() {
@@ -127,7 +166,7 @@ fn draw_walls(
 
     if let Some(walls) = &walls.0 {
         for wall_position in walls {
-            drawing_configuration.spawn(&mut commands, &bundles, BundleType::Wall, wall_position);
+            drawing_configuration.spawn(&mut commands, &assets, BundleType::Wall, wall_position);
         }
     };
 }
@@ -147,6 +186,7 @@ fn tick(
 
 fn play(
     mut tick_event: EventReader<GameTick>,
+    mut game_over_writer: EventWriter<GameOver>,
     mut game: ResMut<GameResource>,
     mut score: ResMut<ScoreResource>,
     mut snake: ResMut<SnakeResource>,
@@ -162,15 +202,25 @@ fn play(
 
     let snapshot = game.0.last_snapshot();
 
+    // game over
+    if let Some(reason) = snapshot.get_dead_reason() {
+        game_over_writer.send(GameOver(reason));
+        game_timers.0.pause();
+        return;
+    }
+
     // Update resources
-    score.0 = snapshot.score;
     snake.0 = snapshot.snake;
+    if score.0 != snapshot.score {
+        score.0 = snapshot.score;
+    }
     if snapshot.food_position != food_position.0 {
         food_position.0 = snapshot.food_position;
     }
     if game_timers.0.duration() != snapshot.period_duration {
         game_timers.0.set_duration(snapshot.period_duration);
     }
+
 }
 
 fn update_food(
@@ -187,6 +237,18 @@ fn update_food(
     let position = food_position.0;
 
     drawing_configuration.translate(BundleType::Food, transform, &position);
+}
+
+fn update_score(
+    score: Res<ScoreResource>,
+    mut score_query: Query<&mut Text, With<ScoreComponent>>,
+) {
+    if !score.is_changed() {
+        return;
+    }
+
+    let mut text = score_query.single_mut();
+    text.sections[0].value = format!("score: {}", score.0);
 }
 
 fn update_snake_head(
@@ -209,7 +271,7 @@ fn update_snake_body(
     mut commands: Commands,
     snake: Res<SnakeResource>,
     mut snake_query: Query<(Entity, &mut Transform), With<SnakeBodyComponent>>,
-    bundles: Res<PbrBundles>,
+    assets: Res<Assets>,
     drawing_configuration: Res<DrawConfigurationResource>,
 ) {
     if !snake.is_changed() {
@@ -234,7 +296,7 @@ fn update_snake_body(
     for new_snake_point in snake_iter {
         drawing_configuration.spawn(
             &mut commands,
-            &bundles,
+            &assets,
             BundleType::SnakeBody,
             new_snake_point,
         );

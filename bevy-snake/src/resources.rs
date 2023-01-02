@@ -1,15 +1,11 @@
 use bevy::{
-    prelude::{AssetServer, FromWorld, Resource, Vec2},
+    prelude::{AssetServer, FromWorld, Resource, Vec2, Handle, Color},
     sprite::{Sprite, SpriteBundle},
-    time::Timer,
+    time::Timer, text::Font,
 };
 use snake::{Direction, Game, Point};
 
-use crate::{draw_utils::DrawConfigurationResource};
-
-
-#[derive(Resource)]
-pub struct GameNameChosen(pub Option<&'static str>);
+use crate::draw_utils::DrawConfigurationResource;
 
 #[derive(Resource)]
 pub struct GameResource(pub Game);
@@ -41,37 +37,54 @@ pub enum BundleType {
 }
 
 #[derive(Resource)]
-pub struct PbrBundles {
+pub struct Assets {
     pub wall: SpriteBundle,
     pub snake_body: SpriteBundle,
     pub snake_head: SpriteBundle,
     pub food: SpriteBundle,
+    pub background_tile: SpriteBundle,
+    pub font: Handle<Font>,
+    pub normal_button_color: Color,
+    pub hovered_button_color: Color,
+    pub pressed_button_color: Color,
+    pub text_button_color: Color,
+    pub text_color: Color,
+    pub overlay_background_color: Color,
 }
 
-impl FromWorld for PbrBundles {
+impl FromWorld for Assets {
     fn from_world(world: &mut bevy::prelude::World) -> Self {
-        let cell_size = world.resource::<DrawConfigurationResource>().cell_size;
-
         let mut asset_server = world.resource_mut::<AssetServer>();
 
-        let wall = load_sprite(&mut asset_server, "wall.png", cell_size);
-        let snake_head = load_sprite(&mut asset_server, "snake_head.png", cell_size);
-        let snake_body = load_sprite(&mut asset_server, "snake_body.png", cell_size);
-        let food = load_sprite(&mut asset_server, "food.png", cell_size);
+        let wall = load_sprite(&mut asset_server, "wall.png");
+        let snake_head = load_sprite(&mut asset_server, "snake_head.png");
+        let snake_body = load_sprite(&mut asset_server, "snake_body.png");
+        let food = load_sprite(&mut asset_server, "food.png");
+        let background_tile = load_sprite(&mut asset_server, "background.png");
+
+        let font = asset_server.load("RobotoMedium-Owv4.ttf");
 
         Self {
             wall,
             snake_body,
             snake_head,
             food,
+            background_tile,
+            font,
+            normal_button_color: Color::rgb(0.15, 0.15, 0.15),
+            hovered_button_color: Color::rgb(0.25, 0.25, 0.25),
+            pressed_button_color: Color::rgb(0.35, 0.75, 0.35),
+            text_button_color: Color::WHITE,
+            text_color: Color::WHITE,
+            overlay_background_color: Color::rgba(0.6, 0.6, 0.6, 0.6).into(),
         }
     }
 }
 
-fn load_sprite(asset_server: &mut AssetServer, s: &'static str, cell_size: f32) -> SpriteBundle {
+fn load_sprite(asset_server: &mut AssetServer, s: &'static str) -> SpriteBundle {
     SpriteBundle {
         sprite: Sprite {
-            custom_size: Some(Vec2::new(cell_size, cell_size)),
+            // custom_size: Some(Vec2::new(cell_size, cell_size)),
             ..Sprite::default()
         },
         texture: asset_server.load(s),

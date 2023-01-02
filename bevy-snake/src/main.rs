@@ -5,7 +5,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {
-                title: "I am a window!".to_string(),
+                title: "Hello FOSDEM - Snake".to_string(),
                 width: 500.,
                 height: 500.,
                 ..WindowDescriptor::default()
