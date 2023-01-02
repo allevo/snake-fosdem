@@ -54,9 +54,9 @@ jobs:
           - os: windows-latest
             artifact_name: bevy_snake.exe
             asset_name: snake-windows-amd64
-          - os: macos-latest
-            artifact_name: bevy_snake
-            asset_name: snake-macos-amd64
+          #- os: macos-latest
+          #  artifact_name: bevy_snake
+          #  asset_name: snake-macos-amd64
 
     steps:
     - name: Install deps
