@@ -42,6 +42,7 @@ jobs:
       run: cargo clippy
 
   publish:
+    needs: [build]
     name: Publish for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
