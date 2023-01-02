@@ -58,6 +58,9 @@ jobs:
             asset_name: snake-macos-amd64
 
     steps:
+    - name: Install deps
+      run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+      if: runner.os == 'linux'
     - uses: actions/checkout@v2
     - uses: actions/cache@v3
       with:
