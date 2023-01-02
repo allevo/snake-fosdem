@@ -41,27 +41,30 @@ jobs:
     - name: Clippy
       run: cargo clippy
 
-  publish:
+  build_windows_release:
     needs: [build]
-    name: Publish for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            artifact_name: bevy_snake
-            asset_name: snake-linux-amd64
-          - os: windows-latest
-            artifact_name: bevy_snake.exe
-            asset_name: snake-windows-amd64
-          #- os: macos-latest
-          #  artifact_name: bevy_snake
-          #  asset_name: snake-macos-amd64
+
+    name: Build windows release
+
+    runs-on: windows-latest
+
+    #strategy:
+    #  matrix:
+    #    include:
+    #      - os: ubuntu-latest
+    #        artifact_name: bevy_snake
+    #        asset_name: snake-linux-amd64
+    #      - os: windows-latest
+    #        artifact_name: bevy_snake.exe
+    #        asset_name: snake-windows-amd64
+    #      #- os: macos-latest
+    #      #  artifact_name: bevy_snake
+    #      #  asset_name: snake-macos-amd64
 
     steps:
-    - name: Install deps
-      run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
-      if: runner.os == 'linux'
+    # - name: Install deps
+    #   run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+    #   if: runner.os == 'linux'
     - uses: actions/checkout@v2
     - uses: actions/cache@v3
       with:
@@ -74,11 +77,37 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Build
       run: cargo build --release --locked
+  
+  release_windows_release:
+    needs: [build_windows_release]
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          ./target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - name: Copy resources
+      run: |
+        cp target/release/bevy_snake.exe .
+        cp -r bevy-snake/assets .
+    - name: Create zip
+      uses: vimtor/action-zip@v1
+      with:
+        files: bevy_snake.exe assets
+        dest: bevy_snake_windows.zip
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/${{ matrix.artifact_name }}
-        asset_name: ${{ matrix.asset_name }}
+        file: bevy_snake_windows.zip
+        asset_name: bevy_snake_windows.zip
         tag: ${{ github.ref }}
         overwrite: true
