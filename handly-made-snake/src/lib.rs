@@ -2,7 +2,7 @@ mod utils;
 
 use js_sys::{Int32Array, Object};
 use snake::{Direction, Game, Snapshot, SNAKE_1, SNAKE_2};
-use tracing::{info};
+use tracing::info;
 use tracing_subscriber::{
     fmt::{
         format::{FmtSpan, Pretty},

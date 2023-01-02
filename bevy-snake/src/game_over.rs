@@ -1,9 +1,8 @@
 use bevy::{
     app::AppExit,
     prelude::{
-        default, BuildChildren, Button, ButtonBundle, Changed, Color, Commands,
-        EventReader, EventWriter, NodeBundle, Plugin, Query, Res, ResMut, State, SystemSet,
-        TextBundle, With,
+        default, BuildChildren, Button, ButtonBundle, Changed, Color, Commands, EventReader,
+        EventWriter, NodeBundle, Plugin, Query, Res, ResMut, State, SystemSet, TextBundle, With,
     },
     text::TextStyle,
     ui::{

@@ -6,8 +6,6 @@ use bevy::{
 };
 use snake::{Direction, Game, Point};
 
-
-
 #[derive(Resource)]
 pub struct GameResource(pub Game);
 

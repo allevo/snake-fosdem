@@ -1,6 +1,4 @@
-use bevy::{
-    prelude::{Commands, Mut, Resource, Transform, Vec2, Vec3},
-};
+use bevy::prelude::{Commands, Mut, Resource, Transform, Vec2, Vec3};
 use snake::Point;
 
 use crate::{
