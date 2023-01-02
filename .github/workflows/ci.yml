@@ -43,28 +43,10 @@ jobs:
 
   build_windows_release:
     needs: [build]
-
     name: Build windows release
-
     runs-on: windows-latest
 
-    #strategy:
-    #  matrix:
-    #    include:
-    #      - os: ubuntu-latest
-    #        artifact_name: bevy_snake
-    #        asset_name: snake-linux-amd64
-    #      - os: windows-latest
-    #        artifact_name: bevy_snake.exe
-    #        asset_name: snake-windows-amd64
-    #      #- os: macos-latest
-    #      #  artifact_name: bevy_snake
-    #      #  asset_name: snake-macos-amd64
-
     steps:
-    # - name: Install deps
-    #   run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
-    #   if: runner.os == 'linux'
     - uses: actions/checkout@v2
     - uses: actions/cache@v3
       with:
@@ -80,7 +62,7 @@ jobs:
   
   release_windows_release:
     needs: [build_windows_release]
-
+    name: Release windows release
     runs-on: windows-latest
 
     steps:
@@ -93,7 +75,7 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           ./target/
-        key: Windows-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Copy resources
       run: |
         cp target/release/bevy_snake.exe .
@@ -110,5 +92,62 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: bevy_snake_windows.zip
         asset_name: bevy_snake_windows.zip
+        tag: ${{ github.ref }}
+        overwrite: true
+
+  build_linux_release:
+    needs: [build]
+    name: Build linux release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install deps
+      run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+      if: runner.os == 'linux'
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          ./target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - name: Build
+      run: cargo build --release --locked
+
+  release_linux_release:
+    needs: [build_linux_release]
+    name: Release linux release
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          ./target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - name: Copy resources
+      run: |
+        cp target/release/bevy_snake .
+        mkdir assets
+        cp -r bevy-snake/assets/ assets/
+    - name: Create zip
+      uses: vimtor/action-zip@v1
+      with:
+        files: bevy_snake assets
+        dest: bevy_snake_linux.zip
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: bevy_snake_linux.zip
+        asset_name: bevy_snake_linux.zip
         tag: ${{ github.ref }}
         overwrite: true
