@@ -41,7 +41,7 @@ jobs:
     - name: Clippy
       run: cargo clippy
 
-  build_windows_release:
+  windows_release:
     needs: [build]
     name: Build windows release
     runs-on: windows-latest
@@ -59,23 +59,6 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Build
       run: cargo build --release --locked
-  
-  release_windows_release:
-    needs: [build_windows_release]
-    name: Release windows release
-    runs-on: windows-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          ./target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Copy resources
       run: |
         cp target/release/bevy_snake.exe .
@@ -103,7 +86,6 @@ jobs:
     steps:
     - name: Install deps
       run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
-      if: runner.os == 'linux'
     - uses: actions/checkout@v2
     - uses: actions/cache@v3
       with:
@@ -118,7 +100,6 @@ jobs:
       run: cargo build --release --locked
     - name: Copy resources
       run: |
-        ls -lah target/release
         cp target/release/bevy_snake .
         mkdir assets
         cp -r bevy-snake/assets/ assets/
@@ -133,5 +114,52 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: bevy_snake_linux.zip
         asset_name: bevy_snake_linux.zip
+        tag: ${{ github.ref }}
+        overwrite: true
+
+  web_release:
+    needs: [build]
+    name: Build web release
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Install deps
+      run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          ./target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - name: Build handly-made-snake
+      run: |
+        cd handly-made-snake
+        wasm-pack build --release
+        cd www
+        npm run build
+    - name: Build bevy-snake
+      run: |
+        cargo run --release bevy_snake
+        cd bevy-snake
+        trunk build --release
+    - name: Copy resources
+      run: |
+        cp handly-made-snake/www/dist handly-made-snake-dist
+        cp bevy-snake/dist bevy-snake-dist
+    - name: Create zip
+      uses: vimtor/action-zip@v1
+      with:
+        files: handly-made-snake-dist bevy-snake-dist
+        dest: bevy_snake_web.zip
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: bevy_snake_web.zip
+        asset_name: bevy_snake_web.zip
         tag: ${{ github.ref }}
         overwrite: true
