@@ -141,6 +141,7 @@ jobs:
         cd handly-made-snake
         wasm-pack build --release
         cd www
+        npm ci
         npm run build
     - name: Build bevy-snake
       run: |
