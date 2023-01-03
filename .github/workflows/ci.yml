@@ -137,12 +137,14 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - name: Build handly-made-snake
       run: |
+        cargo install wasm-pack
         cd handly-made-snake
         wasm-pack build --release
         cd www
         npm run build
     - name: Build bevy-snake
       run: |
+        cargo install --locked trunk
         cargo run --release bevy_snake
         cd bevy-snake
         trunk build --release
