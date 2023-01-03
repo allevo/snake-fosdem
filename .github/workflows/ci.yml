@@ -85,7 +85,9 @@ jobs:
 
     steps:
     - name: Install deps
-      run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils
     - uses: actions/checkout@v2
     - uses: actions/cache@v3
       with:
@@ -124,7 +126,9 @@ jobs:
 
     steps:
     - name: Install deps
-      run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils
     - uses: actions/checkout@v2
     - uses: actions/cache@v3
       with:
@@ -138,15 +142,13 @@ jobs:
     - name: Build handly-made-snake
       run: |
         cargo install wasm-pack
-        cd handly-made-snake
-        wasm-pack build --release
-        cd www
+        wasm-pack build --release handly-made-snake
+        cd handly-made-snake/www
         npm ci
         npm run build
     - name: Build bevy-snake
       run: |
         cargo install --locked trunk
-        cargo run --release bevy_snake
         cd bevy-snake
         trunk build --release
     - name: Copy resources
