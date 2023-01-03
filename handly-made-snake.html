@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Hello FOSDEM - Snake</title>
+
+    <style>
+      .game, .choose-game {
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+        
+        align-items: center;
+      }
+      .game {
+        display: none;
+      }
+      .choose-game {
+        flex-direction: row;
+      }
+      .game > #game-board, .choose-game .example .board {
+        white-space: pre;
+        border: 1px solid black;
+        font-family: 'Courier New', Courier, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+
+    <div class="choose-game">
+    </div>
+
+    <div class="game" id="game">
+      <div id="game-board"></div>
+      <div id="score"></div>
+      <div id="die-reason"></div>
+    </div>
+    <script src="./bootstrap.js"></script>
+  </body>
+</html>
