@@ -160,7 +160,7 @@ jobs:
         echo '<html><a ref="./bevy-snake.html">bevy-snake</a><a ref="./handly-made-snake.html">handly-made-snake</a></html>' >> bevy-snake-dist/index.html
         mkdir dist
         mv handly-made-snake-dist/* dist
-        mv -r bevy-snake-dist/* dist
+        mv bevy-snake-dist/* dist
     - name: Create zip
       uses: vimtor/action-zip@v1
       with:
