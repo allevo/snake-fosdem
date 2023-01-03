@@ -153,8 +153,8 @@ jobs:
         trunk build --release
     - name: Copy resources
       run: |
-        cp handly-made-snake/www/dist handly-made-snake-dist
-        cp bevy-snake/dist bevy-snake-dist
+        cp -r handly-made-snake/www/dist handly-made-snake-dist
+        cp -r bevy-snake/dist bevy-snake-dist
     - name: Create zip
       uses: vimtor/action-zip@v1
       with:
