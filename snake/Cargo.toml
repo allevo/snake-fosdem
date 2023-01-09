@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 fastrand = "1.8.0"
-tracing = { version = "*", default-features = false, features = [ "attributes" ] }
+tracing = { version = "*", default-features = false }
