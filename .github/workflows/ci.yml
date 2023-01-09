@@ -17,8 +17,10 @@ jobs:
     steps:
     - name: Install deps
       run: |
+        wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
         sudo apt-get update
-        sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils
+        sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-focal.list http://packages.lunarg.com/vulkan/lunarg-vulkan-focal.list
+        sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils vulkan-sdk
     - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
