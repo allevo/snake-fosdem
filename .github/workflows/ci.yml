@@ -20,7 +20,7 @@ jobs:
     - name: Install deps
       run: |
         sudo apt update
-        sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils vulkan-sdk
+        sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils
     - name: Info2
       run: vulkaninfo
     - uses: actions/checkout@v3
