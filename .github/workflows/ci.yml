@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Install deps
-      run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+      run: sudo apt-get install -y libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils
     - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
@@ -87,7 +87,7 @@ jobs:
     - name: Install deps
       run: |
         sudo apt-get update
-        sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils
+        sudo apt-get install -y libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils
     - uses: actions/checkout@v2
     - uses: actions/cache@v3
       with:
@@ -128,7 +128,7 @@ jobs:
     - name: Install deps
       run: |
         sudo apt-get update
-        sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils
+        sudo apt-get install -y libasound2-dev libudev-dev libvulkan1 mesa-vulkan-drivers vulkan-utils
     - uses: actions/checkout@v2
     - uses: actions/cache@v3
       with:
@@ -157,7 +157,7 @@ jobs:
         cp -r bevy-snake/dist bevy-snake-dist
         mv handly-made-snake-dist/index.html handly-made-snake-dist/handly-made-snake.html
         mv bevy-snake-dist/index.html bevy-snake-dist/bevy-snake.html
-        echo '<html><a ref="./bevy-snake.html">bevy-snake</a><a ref="./handly-made-snake.html">handly-made-snake</a></html>' >> bevy-snake-dist/index.html
+        echo '<html><a href="./bevy-snake.html">bevy-snake</a><a href="./handly-made-snake.html">handly-made-snake</a></html>' >> bevy-snake-dist/index.html
         mkdir dist
         mv handly-made-snake-dist/* dist
         mv bevy-snake-dist/* dist
