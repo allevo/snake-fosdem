@@ -1,8 +1,9 @@
 use bevy::{
+    ecs::{schedule::ShouldRun, system::SystemState},
     input::keyboard::KeyboardInput,
     prelude::{
         Commands, Entity, EventReader, EventWriter, KeyCode, Plugin, Query, Res, ResMut, State,
-        SystemSet, TextBundle, Transform, With, World,
+        SystemSet, TextBundle, Transform, With, Without, World,
     },
     text::{Text, TextStyle},
     time::{Time, Timer, TimerMode},
@@ -11,66 +12,87 @@ use bevy::{
 use snake::{Direction, Game};
 
 use crate::{
-    components::*,
     draw_utils::DrawConfigurationResource,
     events::{GameChosen, GameOver, GameTick},
     resources::*,
-    AppState, LEVELS,
+    AppState,
 };
 
+pub mod components;
+
+use components::*;
+
 pub struct SnakePlugin;
+
+fn not_game(state: Res<State<AppState>>) -> ShouldRun {
+    if state.current() != &AppState::Play {
+        ShouldRun::Yes
+    } else {
+        ShouldRun::No
+    }
+}
 
 impl Plugin for SnakePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_event::<GameTick>()
             .add_event::<GameOver>()
-            .add_system(wait_for_game_chosen_event)
-            // Enter in game
+            // Outside Play
             .add_system_set(
-                SystemSet::on_enter(AppState::InGame(""))
+                SystemSet::new()
+                    .with_run_criteria(not_game)
+                    .with_system(wait_for_game_chosen_event),
+            )
+            // Enter in Play
+            .add_system_set(
+                SystemSet::on_enter(AppState::Play)
                     .with_system(add_all_resources)
                     // init draw
                     .with_system(init_draw),
             )
-            // Run game
+            // Run Play
             .add_system_set(
-                SystemSet::on_update(AppState::InGame(""))
+                SystemSet::on_update(AppState::Play)
                     // draw walls
                     .with_system(draw_walls)
-                    // Run tick
-                    .with_system(tick)
                     // Play
                     .with_system(play)
                     // Update resources
-                    .with_system(update_snake_body)
-                    .with_system(update_snake_head)
+                    .with_system(update_snake)
                     .with_system(update_food)
                     .with_system(update_score)
-                    .with_system(handle_keyboard_input),
+                    .with_system(handle_keyboard_input)
+                    // Run tick
+                    .with_system(tick),
+            )
+            // Go out Play
+            .add_system_set(
+                SystemSet::on_exit(AppState::Play).with_system(stop_timer_on_game_over),
             );
     }
 }
 
-fn wait_for_game_chosen_event(
-    mut game_chosen_reader: EventReader<GameChosen>,
-    mut app_state: ResMut<State<AppState>>,
-) {
-    if let Some(name) = game_chosen_reader.iter().last().map(|e| e.0) {
-        app_state.set(AppState::InGame(name)).unwrap();
+fn wait_for_game_chosen_event(world: &mut World) {
+    let mut initial_state: SystemState<EventReader<GameChosen>> = SystemState::new(world);
+    let mut event_reader = initial_state.get_mut(world);
+
+    let game_board = match event_reader.iter().last().map(|e| &e.0) {
+        Some(game_board) => game_board,
+        None => return,
     };
+
+    let game: Game = game_board.parse().unwrap();
+
+    world
+        // Shadow resources
+        .insert_resource(GameResource(game));
+
+    let mut app_state = world.resource_mut::<State<AppState>>();
+    app_state.set(AppState::Play).unwrap();
 }
 
 fn add_all_resources(world: &mut World) {
-    let state: &State<AppState> = world.resource();
-    let state = state.current();
-    let game_name = match state {
-        AppState::InGame(name) => name,
-        _ => unreachable!("`add_all_resources` should be called only when the state is InGame"),
-    };
+    let game = &world.resource::<GameResource>().0;
 
-    let level = LEVELS.iter().find(|(name, _)| name == game_name).unwrap().1;
-
-    let game: Game = level.parse().unwrap();
     let dim = game.dim();
     let cell_size = calculate_cell_size(dim, world.resource::<Windows>().primary());
 
@@ -81,9 +103,6 @@ fn add_all_resources(world: &mut World) {
 
     // Keep track cell size
     world.insert_resource(DrawConfigurationResource { cell_size, dim });
-    world
-        // Main resource: pointer to the game
-        .insert_resource(GameResource(game));
     world
         // Shadow resources
         .insert_resource(WallsResource(Some(walls)));
@@ -199,9 +218,8 @@ fn play(
     let snapshot = game.0.last_snapshot();
 
     // game over
-    if let Some(reason) = snapshot.get_dead_reason() {
+    if let Some(reason) = snapshot.get_game_over_reason() {
         game_over_writer.send(GameOver(reason));
-        game_timers.0.pause();
         return;
     }
 
@@ -246,26 +264,18 @@ fn update_score(
     text.sections[0].value = format!("score: {}", score.0);
 }
 
-fn update_snake_head(
+#[allow(clippy::type_complexity)]
+fn update_snake(
     snake: Res<SnakeResource>,
-    mut snake_query: Query<&mut Transform, With<SnakeHeadComponent>>,
-    drawing_configuration: Res<DrawConfigurationResource>,
-) {
-    if !snake.is_changed() {
-        return;
-    }
-
-    // We are sure than head always exists
-    let transform = snake_query.single_mut();
-    let position = snake.0.get(0).unwrap();
-
-    drawing_configuration.translate(BundleType::SnakeHead, transform, position);
-}
-
-fn update_snake_body(
+    mut head_snake_query: Query<
+        &mut Transform,
+        (With<SnakeHeadComponent>, Without<SnakeBodyComponent>),
+    >,
     mut commands: Commands,
-    snake: Res<SnakeResource>,
-    mut snake_query: Query<(Entity, &mut Transform), With<SnakeBodyComponent>>,
+    mut snake_query: Query<
+        (Entity, &mut Transform),
+        (With<SnakeBodyComponent>, Without<SnakeHeadComponent>),
+    >,
     assets: Res<Assets>,
     drawing_configuration: Res<DrawConfigurationResource>,
 ) {
@@ -273,6 +283,14 @@ fn update_snake_body(
         return;
     }
 
+    // HEAD
+    // We are sure than head always exists
+    let transform = head_snake_query.single_mut();
+    let position = snake.0.get(0).unwrap();
+
+    drawing_configuration.translate(BundleType::SnakeHead, transform, position);
+
+    // BODY
     let iter = snake_query.iter_mut();
     // Skip 1 because the first one is the head
     let mut snake_iter = snake.0.iter().skip(1);
@@ -317,6 +335,10 @@ fn handle_keyboard_input(
     if let Some(direction) = direction {
         current_direction.0 = direction;
     }
+}
+
+fn stop_timer_on_game_over(mut game_timers: ResMut<GameTimerResource>) {
+    game_timers.0.pause();
 }
 
 fn calculate_cell_size(dim: (usize, usize), window: &Window) -> f32 {

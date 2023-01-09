@@ -2,7 +2,7 @@ use bevy::prelude::{Commands, Mut, Resource, Transform, Vec2, Vec3};
 use snake::Point;
 
 use crate::{
-    components::*,
+    play_plugin::components::*,
     resources::{Assets, BundleType},
 };
 

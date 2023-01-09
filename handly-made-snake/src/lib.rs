@@ -39,10 +39,20 @@ pub fn greet() {
 }
 
 #[wasm_bindgen]
-pub struct GameWrapper(Game);
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DirectionWrapper {
+    Up = 0,
+    Down = 1,
+    Left = 2,
+    Right = 3,
+}
 
 #[wasm_bindgen]
 pub struct PointWrapper(usize, usize);
+
+#[wasm_bindgen]
+pub struct GameWrapper(Game);
 
 #[wasm_bindgen]
 impl GameWrapper {
@@ -65,7 +75,7 @@ impl GameWrapper {
         Int32Array::from(&walls[..])
     }
 
-    pub fn tick(&mut self, direction: DirectionWrapper) -> SnapshotWrapper {
+    pub fn tick(&mut self, direction: DirectionWrapper) {
         info!("direction = {:?}", direction);
 
         let direction = match direction {
@@ -76,11 +86,9 @@ impl GameWrapper {
         };
 
         self.0.tick(direction);
-
-        self.snapshot()
     }
 
-    pub fn snapshot(&self) -> SnapshotWrapper {
+    pub fn last_snapshot(&self) -> SnapshotWrapper {
         SnapshotWrapper(self.0.last_snapshot())
     }
 }
@@ -106,13 +114,9 @@ impl SnapshotWrapper {
         Int32Array::from(&dim[..])
     }
 
-    pub fn die_reason(&self) -> JsValue {
-        if self.0.on_wall {
-            return JsValue::from_str("on wall");
-        }
-
-        if self.0.eat_itself {
-            return JsValue::from_str("on snake");
+    pub fn get_game_over_reason(&self) -> JsValue {
+        if let Some(reason) = self.0.get_game_over_reason() {
+            return JsValue::from_str(reason);
         }
 
         JsValue::NULL
@@ -153,16 +157,6 @@ pub fn create_game(level_name: JsValue) -> GameWrapper {
     };
 
     GameWrapper(game)
-}
-
-#[wasm_bindgen]
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum DirectionWrapper {
-    Up = 0,
-    Down = 1,
-    Left = 2,
-    Right = 3,
 }
 
 #[wasm_bindgen]

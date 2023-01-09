@@ -8,12 +8,15 @@ use bevy::{
     ui::{AlignItems, BackgroundColor, Interaction, JustifyContent, Style, UiRect, Val},
 };
 
-use crate::{
-    components::{ChooseGameButtonComponent, ChooseGameComponent},
-    events::GameChosen,
-    resources::Assets,
-    AppState, LEVELS,
-};
+use crate::{events::GameChosen, resources::Assets, AppState, LEVELS};
+
+#[cfg(not(test))]
+mod components;
+
+#[cfg(test)]
+pub mod components;
+
+use components::*;
 
 pub struct ChooseGamePlugin;
 
@@ -66,7 +69,7 @@ fn draw_choose_game(mut commands: Commands, assets: Res<Assets>) {
             let num = LEVELS.len();
             let percent = 100. / num as f32;
 
-            for (name, _) in LEVELS {
+            for (name, board) in LEVELS {
                 parent
                     .spawn(NodeBundle {
                         style: Style {
@@ -93,7 +96,7 @@ fn draw_choose_game(mut commands: Commands, assets: Res<Assets>) {
                                 background_color: assets.normal_button_color.into(),
                                 ..default()
                             })
-                            .insert(ChooseGameButtonComponent(name))
+                            .insert(ChooseGameButtonComponent { name, board })
                             .with_children(|parent| {
                                 parent.spawn(TextBundle::from_section(
                                     name,
@@ -127,8 +130,8 @@ fn handle_choose_game(
             Interaction::Clicked => {
                 *color = assets.pressed_button_color.into();
 
-                let game_name = choose_game_component.0;
-                game_chosen_writer.send(GameChosen(game_name));
+                let board = choose_game_component.board;
+                game_chosen_writer.send(GameChosen(board));
             }
             Interaction::Hovered => {
                 *color = assets.hovered_button_color.into();

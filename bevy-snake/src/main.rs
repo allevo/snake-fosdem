@@ -6,8 +6,8 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {
                 title: "Hello FOSDEM - Snake".to_string(),
-                width: 500.,
-                height: 500.,
+                width: 200.,
+                height: 200.,
                 ..WindowDescriptor::default()
             },
             ..WindowPlugin::default()

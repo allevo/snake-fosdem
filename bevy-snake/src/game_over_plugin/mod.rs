@@ -10,8 +10,15 @@ use bevy::{
     },
 };
 
-use crate::{components::QuitComponent, events::GameOver, resources::Assets, AppState};
+use crate::{events::GameOver, resources::Assets, AppState};
 
+#[cfg(not(test))]
+mod components;
+
+#[cfg(test)]
+pub mod components;
+
+use components::*;
 pub struct GameOverPlugin;
 
 impl Plugin for GameOverPlugin {
@@ -35,7 +42,9 @@ fn wait_for_game_over_event(
     mut app_state: ResMut<State<AppState>>,
 ) {
     if let Some(reason) = game_over_reader.iter().last() {
-        app_state.set(AppState::GameOver(reason.0)).unwrap();
+        if !matches!(app_state.current(), AppState::GameOver(_)) {
+            app_state.set(AppState::GameOver(reason.0)).unwrap();
+        }
     }
 }
 

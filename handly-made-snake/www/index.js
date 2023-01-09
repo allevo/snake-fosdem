@@ -43,7 +43,7 @@ function startGame(level) {
     const dieReasonEl = document.getElementById('die-reason')
     const scoreEl = document.getElementById('score')
 
-    const snapshot = game.snapshot()
+    const snapshot = game.last_snapshot()
 
     let duration = snapshot.period_duration_ms()
     interval = setInterval(run, duration)
@@ -52,14 +52,15 @@ function startGame(level) {
     function run () {
         console.log('run!')
 
-        let snapshot = game.tick(direction)
+        game.tick(direction)
 
         draw(game, gameBoardEl, wallsObject)
         
+        let snapshot = game.last_snapshot();
         let score = snapshot.score();
         scoreEl.textContent = `score: ${score}`
 
-        let reason = snapshot.die_reason();
+        let reason = snapshot.get_game_over_reason();
         if (reason) {
             dieReasonEl.textContent += reason;
             console.log('ENDED!')
@@ -91,7 +92,7 @@ function calculateWallsObject(game) {
 
 function draw(game, el, wallsObject) {
     const dim = game.dim()
-    const snapshot = game.snapshot()
+    const snapshot = game.last_snapshot()
     const width = dim[0]
     const height = dim[1]
 

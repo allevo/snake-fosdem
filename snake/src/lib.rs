@@ -103,7 +103,7 @@ pub struct Snapshot {
 }
 
 impl Snapshot {
-    pub fn get_dead_reason(&self) -> Option<&'static str> {
+    pub fn get_game_over_reason(&self) -> Option<&'static str> {
         if self.on_wall {
             return Some("On Wall");
         }
@@ -298,12 +298,6 @@ fn calculate_period_duration(score: usize) -> Duration {
     }
 }
 
-pub static SNAKE_2: &str = "          
-          
-    h     
-    b     
-      f   
-          ";
 pub static SNAKE_1: &str = "\
 ##########
 #        #
@@ -311,6 +305,12 @@ pub static SNAKE_1: &str = "\
 #   h    #
 #   b f  #
 ##########";
+pub static SNAKE_2: &str = "          
+          
+    h     
+    b     
+      f   
+          ";
 
 #[cfg(test)]
 mod tests {
@@ -323,6 +323,33 @@ mod tests {
 #   b    #
 #     f  #
 ##########";
+
+    static MY_LEVEL: &str = "\
+##########
+#   f    #
+#   h    #
+#   b    #
+#        #
+##########";
+
+    static UNREACHABLE_POSITION: Point = Point { x: 100, y: 100 };
+
+    #[test]
+    fn test_ok() {
+        let mut game: Game = MY_LEVEL.parse().unwrap();
+
+        game.tick(Direction::Up);
+        let snapshot = game.last_snapshot();
+        assert!(snapshot.on_food);
+        assert!(!snapshot.on_wall);
+        assert!(matches!(snapshot.get_game_over_reason(), None));
+
+        game.tick(Direction::Up);
+        let snapshot = game.last_snapshot();
+        assert!(!snapshot.on_food);
+        assert!(snapshot.on_wall);
+        assert!(matches!(snapshot.get_game_over_reason(), Some(_)));
+    }
 
     #[test]
     fn test_from_str() {
@@ -454,13 +481,16 @@ mod tests {
         let mut game: Game = board.parse().unwrap();
 
         assert_eq!(game.food, Point { x: 4, y: 3 });
+        assert_eq!(game.snake.head, Point { x: 4, y: 2 });
+        assert_ne!(game.food, Point { x: 4, y: 1 });
 
         game.tick(crate::Direction::Up);
 
         assert_eq!(game.snake.head, Point { x: 4, y: 3 });
-        assert_eq!(game.snake.body.len(), 1);
         assert_ne!(game.food, Point { x: 4, y: 3 });
 
+        // Impossible position but at least our snake will not grow
+        game.food = UNREACHABLE_POSITION;
         game.tick(crate::Direction::Up);
 
         assert_eq!(game.snake.head, Point { x: 4, y: 4 });
@@ -493,6 +523,7 @@ mod tests {
             vec![Point { x: 5, y: 5 }, Point { x: 4, y: 5 }]
         );
 
+        // Set food position to check if the snake will grow
         game.food = Point { x: 7, y: 5 };
 
         game.tick(crate::Direction::Right);
@@ -503,6 +534,8 @@ mod tests {
             vec![Point { x: 5, y: 5 }, Point { x: 6, y: 5 }]
         );
 
+        // Impossible position but at least our snake will not grow
+        game.food = UNREACHABLE_POSITION;
         game.tick(crate::Direction::Right);
 
         assert_eq!(game.snake.head, Point { x: 8, y: 5 });
