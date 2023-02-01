@@ -145,11 +145,11 @@ jobs:
           ~/.cargo/git/db/
           ./target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    - name: Build handly-made-snake
+    - name: Build handmade-snake
       run: |
         cargo install wasm-pack
-        wasm-pack build --release handly-made-snake
-        cd handly-made-snake/www
+        wasm-pack build --release handmade-snake
+        cd handmade-snake/www
         npm ci
         npm run build
     - name: Build bevy-snake
@@ -159,13 +159,13 @@ jobs:
         trunk build --release
     - name: Copy resources
       run: |
-        cp -r handly-made-snake/www/dist handly-made-snake-dist
+        cp -r handmade-snake/www/dist handmade-snake-dist
         cp -r bevy-snake/dist bevy-snake-dist
-        mv handly-made-snake-dist/index.html handly-made-snake-dist/handly-made-snake.html
+        mv handmade-snake-dist/index.html handmade-snake-dist/handmade-snake.html
         mv bevy-snake-dist/index.html bevy-snake-dist/bevy-snake.html
-        echo '<html><a href="./bevy-snake.html">bevy-snake</a><a href="./handly-made-snake.html">handly-made-snake</a></html>' >> bevy-snake-dist/index.html
+        echo '<html><a href="./bevy-snake.html">bevy-snake</a><a href="./handmade-snake.html">handmade-snake</a></html>' >> bevy-snake-dist/index.html
         mkdir dist
-        mv handly-made-snake-dist/* dist
+        mv handmade-snake-dist/* dist
         mv bevy-snake-dist/* dist
     - name: Create zip
       uses: vimtor/action-zip@v1
