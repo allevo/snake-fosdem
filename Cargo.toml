@@ -3,7 +3,7 @@
 resolver = "2"
 members = [
     "snake",
-    "handly-made-snake",
+    "handmade-snake",
     "bevy-snake"
 ]
 

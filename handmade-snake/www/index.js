@@ -1,4 +1,4 @@
-import * as wasm from "handly-made-snake"
+import * as wasm from "handmade-snake"
 
 wasm.set_panic_hook()
 

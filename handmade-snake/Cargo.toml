@@ -1,5 +1,5 @@
 [package]
-name = "handly-made-snake"
+name = "handmade-snake"
 version = "0.1.0"
 authors = ["Tommaso Allevi <tomallevi@gmail.com>"]
 edition = "2018"

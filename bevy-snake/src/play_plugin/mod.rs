@@ -55,14 +55,14 @@ impl Plugin for SnakePlugin {
                     // draw walls
                     .with_system(draw_walls)
                     // Play
-                    .with_system(play)
+                    .with_system(tick)
                     // Update resources
                     .with_system(update_snake)
                     .with_system(update_food)
                     .with_system(update_score)
                     .with_system(handle_keyboard_input)
                     // Run tick
-                    .with_system(tick),
+                    .with_system(send_game_tick),
             )
             // Go out Play
             .add_system_set(
@@ -185,7 +185,7 @@ fn draw_walls(
     };
 }
 
-fn tick(
+fn send_game_tick(
     time: Res<Time>,
     mut game_timers: ResMut<GameTimerResource>,
     mut tick_event_writer: EventWriter<GameTick>,
@@ -199,7 +199,7 @@ fn tick(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn play(
+fn tick(
     mut tick_event: EventReader<GameTick>,
     mut game_over_writer: EventWriter<GameOver>,
     mut game: ResMut<GameResource>,

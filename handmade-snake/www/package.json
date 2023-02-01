@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/rustwasm/create-wasm-app#readme",
   "dependencies": {
-    "handly-made-snake": "file:../pkg"
+    "handmade-snake": "file:../pkg"
   },
   "devDependencies": {
     "hello-wasm-pack": "^0.1.0",

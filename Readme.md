@@ -17,7 +17,7 @@ This project is a graphic implementation of snake binding `snake` workspace memb
 
 To run:
 ```
-cd handly-made-snake
+cd handmade-snake
 wasm-pack build
 cd www
 npm run start
