@@ -289,12 +289,12 @@ fn index_to_coordinate(index: usize, w: usize) -> Point {
 
 fn calculate_period_duration(score: usize) -> Duration {
     match score {
-        0..=1 => Duration::from_secs(2),
-        2..=3 => Duration::from_secs(1),
-        4..=5 => Duration::from_millis(750),
-        6..=8 => Duration::from_millis(500),
-        9..=11 => Duration::from_millis(300),
-        _ => Duration::from_millis(200),
+        0..=1 => Duration::from_secs(1),
+        2..=3 => Duration::from_millis(750),
+        4..=5 => Duration::from_millis(500),
+        6..=8 => Duration::from_millis(300),
+        9..=11 => Duration::from_millis(150),
+        _ => Duration::from_millis(75),
     }
 }
 
