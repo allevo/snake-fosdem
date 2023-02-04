@@ -94,9 +94,6 @@
 /******/ 					"__wbg_error_f851667af71bcfc6": function(p0i32,p1i32) {
 /******/ 						return installedModules["../pkg/handmade_snake_bg.js"].exports["__wbg_error_f851667af71bcfc6"](p0i32,p1i32);
 /******/ 					},
-/******/ 					"__wbg_now_8172cd917e5eda6b": function(p0i32) {
-/******/ 						return installedModules["../pkg/handmade_snake_bg.js"].exports["__wbg_now_8172cd917e5eda6b"](p0i32);
-/******/ 					},
 /******/ 					"__wbg_debug_f15cb542ea509609": function(p0i32) {
 /******/ 						return installedModules["../pkg/handmade_snake_bg.js"].exports["__wbg_debug_f15cb542ea509609"](p0i32);
 /******/ 					},
@@ -108,6 +105,9 @@
 /******/ 					},
 /******/ 					"__wbg_warn_58110c4a199df084": function(p0i32) {
 /******/ 						return installedModules["../pkg/handmade_snake_bg.js"].exports["__wbg_warn_58110c4a199df084"](p0i32);
+/******/ 					},
+/******/ 					"__wbg_now_8172cd917e5eda6b": function(p0i32) {
+/******/ 						return installedModules["../pkg/handmade_snake_bg.js"].exports["__wbg_now_8172cd917e5eda6b"](p0i32);
 /******/ 					},
 /******/ 					"__wbg_newnoargs_b5b063fc6c2f0376": function(p0i32,p1i32) {
 /******/ 						return installedModules["../pkg/handmade_snake_bg.js"].exports["__wbg_newnoargs_b5b063fc6c2f0376"](p0i32,p1i32);
@@ -267,7 +267,7 @@
 /******/ 				promises.push(installedWasmModuleData);
 /******/ 			else {
 /******/ 				var importObject = wasmImportObjects[wasmModuleId]();
-/******/ 				var req = fetch(__webpack_require__.p + "" + {"../pkg/handmade_snake_bg.wasm":"ac784aa41f54be4db27b"}[wasmModuleId] + ".module.wasm");
+/******/ 				var req = fetch(__webpack_require__.p + "" + {"../pkg/handmade_snake_bg.wasm":"fd949a55370f8e60323f"}[wasmModuleId] + ".module.wasm");
 /******/ 				var promise;
 /******/ 				if(importObject instanceof Promise && typeof WebAssembly.compileStreaming === 'function') {
 /******/ 					promise = Promise.all([WebAssembly.compileStreaming(req), importObject]).then(function(items) {
